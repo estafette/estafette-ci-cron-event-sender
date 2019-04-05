@@ -65,6 +65,7 @@ releases:
         image: extensions/gke:dev
         kind: cronjob
         schedule: '* * * * *'
+        concurrencypolicy: Forbid
         namespace: estafette
         container:
           repository: estafette
