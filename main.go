@@ -77,4 +77,6 @@ func main() {
 	if response.StatusCode != http.StatusOK {
 		log.Fatal().Err(err).Str("logs", client.LogString()).Msgf("Failed sending event to %v, response status code %v", *ciServerCronEventsURL, response.StatusCode)
 	}
+
+	log.Info().Msgf("Sent tick succesfully to %v...", *ciServerCronEventsURL)
 }
