@@ -39,6 +39,8 @@ stages:
     repositories:
     - estafette
     path: ./publish
+    copy:
+    - /etc/ssl/certs/ca-certificates.crt
 
   push-to-docker-hub:
     image: extensions/docker:dev
