@@ -60,7 +60,7 @@ func main() {
 	client.Timeout = time.Second * 10
 	request, err := http.NewRequest("POST", *ciServerCronEventsURL, nil)
 	if err != nil {
-		log.Error().Err(err).Msgf("Failed creating http client")
+		log.Fatal().Err(err).Msgf("Failed creating http client")
 	}
 
 	// add headers
@@ -70,8 +70,11 @@ func main() {
 	// perform actual request
 	response, err := client.Do(request)
 	if err != nil {
-		log.Error().Err(err).Str("logs", client.LogString()).Msgf("Failed sending event to %v", *ciServerCronEventsURL)
+		log.Fatal().Err(err).Str("logs", client.LogString()).Msgf("Failed sending event to %v", *ciServerCronEventsURL)
 	}
-
 	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		log.Fatal().Err(err).Str("logs", client.LogString()).Msgf("Failed sending event to %v, response status code %v", *ciServerCronEventsURL, response.StatusCode)
+	}
 }
