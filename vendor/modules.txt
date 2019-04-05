@@ -1,0 +1,14 @@
+# github.com/alecthomas/kingpin v2.2.6+incompatible
+github.com/alecthomas/kingpin
+# github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc
+github.com/alecthomas/template
+github.com/alecthomas/template/parse
+# github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf
+github.com/alecthomas/units
+# github.com/rs/zerolog v1.13.0
+github.com/rs/zerolog
+github.com/rs/zerolog/log
+github.com/rs/zerolog/internal/cbor
+github.com/rs/zerolog/internal/json
+# github.com/sethgrid/pester v0.0.0-20190127155807-68a33a018ad0
+github.com/sethgrid/pester
