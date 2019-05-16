@@ -79,8 +79,8 @@ func main() {
 
 	// add tracing context
 	ext.SpanKindRPCClient.Set(span)
-	ext.HTTPUrl.Set(span, *ciServerCronEventsURL)
-	ext.HTTPMethod.Set(span, "POST")
+	ext.HTTPMethod.Set(span, request.Method)
+	ext.HTTPUrl.Set(span, request.URL.String())
 	span.Tracer().Inject(
 		span.Context(),
 		opentracing.HTTPHeaders,
