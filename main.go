@@ -61,7 +61,7 @@ func main() {
 	closer := initJaeger(app)
 	defer closer.Close()
 
-	span := opentracing.StartSpan("tick")
+	span := opentracing.StartSpan("SendTick")
 	defer span.Finish()
 
 	// create client, in order to add headers
