@@ -96,6 +96,8 @@ func main() {
 	}
 	defer response.Body.Close()
 
+	ext.HTTPStatusCode.Set(span, uint16(response.StatusCode))
+
 	if response.StatusCode != http.StatusOK {
 		log.Fatal().Err(err).Str("logs", client.LogString()).Msgf("Failed sending event to %v, response status code %v", *ciServerCronEventsURL, response.StatusCode)
 	}
