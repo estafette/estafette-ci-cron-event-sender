@@ -64,6 +64,8 @@ func main() {
 	span := opentracing.StartSpan("SendTick")
 	defer span.Finish()
 
+	span.SetBaggageItem("tick-time", time.Now().UTC().Format(time.RFC3339))
+
 	// create client, in order to add headers
 	client := pester.New()
 	client.MaxRetries = 3
