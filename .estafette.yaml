@@ -20,7 +20,7 @@ stages:
       GOFLAGS: -mod=vendor
     commands:
     - go test ./...
-    - go build -a -installsuffix cgo -ldflags "-X main.version=${ESTAFETTE_BUILD_VERSION} -X main.revision=${ESTAFETTE_GIT_REVISION} -X main.branch=${ESTAFETTE_GIT_BRANCH} -X main.buildDate=${ESTAFETTE_BUILD_DATETIME}" -o ./publish/${ESTAFETTE_GIT_NAME} .
+    - go build -a -installsuffix cgo -ldflags "-X main.app=${ESTAFETTE_GIT_NAME} -X main.version=${ESTAFETTE_BUILD_VERSION} -X main.revision=${ESTAFETTE_GIT_REVISION} -X main.branch=${ESTAFETTE_GIT_BRANCH} -X main.buildDate=${ESTAFETTE_BUILD_DATETIME}" -o ./publish/${ESTAFETTE_GIT_NAME} .
 
   bake:
     image: extensions/docker:dev
@@ -71,3 +71,4 @@ releases:
           env:
             API_KEY: estafette.secret(F-GHrep4UAYEVH18.fhWaqbptXBp6Zc0jBFaisNwSP2TTqjzwKK6uD8_EomjU6JY_3t21uaRf7lzcUA==)
             CRON_EVENTS_URL: estafette.secret(tZ6onvLQSAPP5vD1.WRBA6sucSEpkuYiuDhsayaCGpQhyqSn43B_eoevrMQjY5yY5LVI72N4KSA8oedqWRRlkryG44j4siiXZMyTtHyyOqXNKpt4Wzlm_5bOi2yztk8zDQFStIVM=)
+            JAEGER_AGENT_HOST: jaeger-all-in-one.jaeger-all-in-one.svc

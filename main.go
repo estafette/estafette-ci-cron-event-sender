@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	stdlog "log"
 	"net/http"
 	"os"
@@ -9,12 +10,17 @@ import (
 	"time"
 
 	"github.com/alecthomas/kingpin"
+	"github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go/ext"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/sethgrid/pester"
+	"github.com/uber/jaeger-client-go"
+	jaegercfg "github.com/uber/jaeger-client-go/config"
 )
 
 var (
+	app       string
 	version   string
 	branch    string
 	revision  string
@@ -33,7 +39,7 @@ func main() {
 	// set some default fields added to all logs
 	log.Logger = zerolog.New(os.Stdout).With().
 		Timestamp().
-		Str("app", "estafette-ci-cron-event-sender").
+		Str("app", app).
 		Str("version", version).
 		Logger()
 
@@ -52,6 +58,12 @@ func main() {
 	// parse command line parameters
 	kingpin.Parse()
 
+	closer := initJaeger(app)
+	defer closer.Close()
+
+	span := opentracing.StartSpan("tick")
+	defer span.Finish()
+
 	// create client, in order to add headers
 	client := pester.New()
 	client.MaxRetries = 3
@@ -62,6 +74,16 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Msgf("Failed creating http client")
 	}
+
+	// add tracing context
+	ext.SpanKindRPCClient.Set(span)
+	ext.HTTPUrl.Set(span, *ciServerCronEventsURL)
+	ext.HTTPMethod.Set(span, "POST")
+	span.Tracer().Inject(
+		span.Context(),
+		opentracing.HTTPHeaders,
+		opentracing.HTTPHeadersCarrier(request.Header),
+	)
 
 	// add headers
 	request.Header.Add("Authorization", fmt.Sprintf("Bearer %v", *apiKey))
@@ -79,4 +101,22 @@ func main() {
 	}
 
 	log.Info().Msgf("Sent tick succesfully to %v...", *ciServerCronEventsURL)
+}
+
+// initJaeger returns an instance of Jaeger Tracer that can be configured with environment variables
+// https://github.com/jaegertracing/jaeger-client-go#environment-variables
+func initJaeger(service string) io.Closer {
+
+	cfg, err := jaegercfg.FromEnv()
+	if err != nil {
+		log.Fatal().Err(err).Msg("Generating Jaeger config from environment variables failed")
+	}
+
+	closer, err := cfg.InitGlobalTracer(service, jaegercfg.Logger(jaeger.StdLogger))
+
+	if err != nil {
+		log.Fatal().Err(err).Msg("Generating Jaeger tracer failed")
+	}
+
+	return closer
 }
