@@ -1,5 +1,5 @@
 builder:
-  track: stable
+  track: dev
 
 labels:
   app-group: estafette-ci
@@ -71,6 +71,5 @@ releases:
           env:
             API_KEY: estafette.secret(F-GHrep4UAYEVH18.fhWaqbptXBp6Zc0jBFaisNwSP2TTqjzwKK6uD8_EomjU6JY_3t21uaRf7lzcUA==)
             CRON_EVENTS_URL: estafette.secret(tZ6onvLQSAPP5vD1.WRBA6sucSEpkuYiuDhsayaCGpQhyqSn43B_eoevrMQjY5yY5LVI72N4KSA8oedqWRRlkryG44j4siiXZMyTtHyyOqXNKpt4Wzlm_5bOi2yztk8zDQFStIVM=)
-            JAEGER_AGENT_HOST: jaeger-all-in-one.jaeger-all-in-one.svc
             JAEGER_SAMPLER_TYPE: probabilistic
             JAEGER_SAMPLER_PARAM: 0.1
