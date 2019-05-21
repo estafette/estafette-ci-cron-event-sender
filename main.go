@@ -121,11 +121,6 @@ func initJaeger(service string) io.Closer {
 		if cfg != nil && cfg.Sampler != nil && os.Getenv("JAEGER_SAMPLER_MANAGER_HOST_PORT") == "" {
 			cfg.Sampler.SamplingServerURL = fmt.Sprintf("http://%v:5778/sampling", os.Getenv("JAEGER_AGENT_HOST"))
 		}
-
-		// // get remote config for baggage restrictions from jaeger-agent running as deamonset
-		// if cfg != nil && cfg.BaggageRestrictions != nil && cfg.BaggageRestrictions.HostPort == "" {
-		// 	cfg.BaggageRestrictions.HostPort = fmt.Sprintf("%v:5778", os.Getenv("JAEGER_AGENT_HOST"))
-		// }
 	}
 
 	closer, err := cfg.InitGlobalTracer(service, jaegercfg.Logger(jaeger.StdLogger))
