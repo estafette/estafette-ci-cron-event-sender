@@ -12,7 +12,6 @@ import (
 	"github.com/alecthomas/kingpin"
 	"github.com/opentracing-contrib/go-stdlib/nethttp"
 	"github.com/opentracing/opentracing-go"
-	"github.com/opentracing/opentracing-go/ext"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/sethgrid/pester"
@@ -65,57 +64,37 @@ func main() {
 	span := opentracing.StartSpan("SendTick")
 	defer span.Finish()
 
-	span.LogEvent("set-bagage")
 	span.SetBaggageItem("tick-time", time.Now().UTC().Format(time.RFC3339))
 
 	// create client, in order to add headers
-	span.LogEvent("create-http-client")
-
-	// client := &http.Client{Transport: &nethttp.Transport{}}
 	client := pester.NewExtendedClient(&http.Client{Transport: &nethttp.Transport{}})
-	// client := pester.New()
 	client.MaxRetries = 3
 	client.Backoff = pester.ExponentialJitterBackoff
 	client.KeepLog = true
 	client.Timeout = time.Second * 10
 
-	span.LogEvent("create-http-request")
 	request, err := http.NewRequest("POST", *ciServerCronEventsURL, nil)
 	if err != nil {
 		log.Fatal().Err(err).Msgf("Failed creating http client")
 	}
 
 	// add tracing context
-	span.LogEvent("set-tracing-context")
 	request = request.WithContext(opentracing.ContextWithSpan(request.Context(), span))
+
+	// collect additional information on setting up connections
 	request, ht := nethttp.TraceRequest(span.Tracer(), request)
 
-	// add tracing context
-	// ext.SpanKindRPCClient.Set(span)
-	// ext.HTTPMethod.Set(span, request.Method)
-	// ext.HTTPUrl.Set(span, request.URL.String())
-	// span.Tracer().Inject(
-	// 	span.Context(),
-	// 	opentracing.HTTPHeaders,
-	// 	opentracing.HTTPHeadersCarrier(request.Header),
-	// )
-
 	// add headers
-	span.LogEvent("add-request-headers")
 	request.Header.Add("Authorization", fmt.Sprintf("Bearer %v", *apiKey))
 	request.Header.Add("Content-Type", "application/json")
 
 	// perform actual request
-	span.LogEvent("do-http-request")
 	response, err := client.Do(request)
 	if err != nil {
 		log.Fatal().Err(err).Str("logs", client.LogString()).Msgf("Failed sending event to %v", *ciServerCronEventsURL)
 	}
 	defer response.Body.Close()
-	span.LogEvent("finish-http-request")
 	ht.Finish()
-
-	ext.HTTPStatusCode.Set(span, uint16(response.StatusCode))
 
 	if response.StatusCode != http.StatusOK {
 		log.Fatal().Err(err).Str("logs", client.LogString()).Msgf("Failed sending event to %v, response status code %v", *ciServerCronEventsURL, response.StatusCode)
