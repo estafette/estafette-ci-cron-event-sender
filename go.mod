@@ -8,6 +8,7 @@ require (
 	github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf // indirect
 	github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/opentracing-contrib/go-stdlib v0.0.0-20190519235532-cf7a6c988dc9
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/pkg/errors v0.8.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/alecthomas/kingpin"
+	"github.com/opentracing-contrib/go-stdlib/nethttp"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/rs/zerolog"
@@ -69,6 +70,8 @@ func main() {
 
 	// create client, in order to add headers
 	span.LogEvent("create-http-client")
+
+	//client := pester.NewExtendedClient(nethttp.Client{})
 	client := pester.New()
 	client.MaxRetries = 3
 	client.Backoff = pester.ExponentialJitterBackoff
@@ -83,14 +86,18 @@ func main() {
 
 	// add tracing context
 	span.LogEvent("set-tracing-context")
-	ext.SpanKindRPCClient.Set(span)
-	ext.HTTPMethod.Set(span, request.Method)
-	ext.HTTPUrl.Set(span, request.URL.String())
-	span.Tracer().Inject(
-		span.Context(),
-		opentracing.HTTPHeaders,
-		opentracing.HTTPHeadersCarrier(request.Header),
-	)
+	request = request.WithContext(opentracing.ContextWithSpan(request.Context(), span))
+	request, ht := nethttp.TraceRequest(span.Tracer(), request)
+
+	// add tracing context
+	// ext.SpanKindRPCClient.Set(span)
+	// ext.HTTPMethod.Set(span, request.Method)
+	// ext.HTTPUrl.Set(span, request.URL.String())
+	// span.Tracer().Inject(
+	// 	span.Context(),
+	// 	opentracing.HTTPHeaders,
+	// 	opentracing.HTTPHeadersCarrier(request.Header),
+	// )
 
 	// add headers
 	span.LogEvent("add-request-headers")
@@ -105,6 +112,7 @@ func main() {
 	}
 	defer response.Body.Close()
 	span.LogEvent("finish-http-request")
+	ht.Finish()
 
 	ext.HTTPStatusCode.Set(span, uint16(response.StatusCode))
 

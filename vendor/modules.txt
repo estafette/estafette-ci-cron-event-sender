@@ -5,6 +5,8 @@ github.com/alecthomas/template
 github.com/alecthomas/template/parse
 # github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf
 github.com/alecthomas/units
+# github.com/opentracing-contrib/go-stdlib v0.0.0-20190519235532-cf7a6c988dc9
+github.com/opentracing-contrib/go-stdlib/nethttp
 # github.com/opentracing/opentracing-go v1.1.0
 github.com/opentracing/opentracing-go
 github.com/opentracing/opentracing-go/ext
