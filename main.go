@@ -71,8 +71,9 @@ func main() {
 	// create client, in order to add headers
 	span.LogEvent("create-http-client")
 
-	//client := pester.NewExtendedClient(nethttp.Client{})
-	client := pester.New()
+	// client := &http.Client{Transport: &nethttp.Transport{}}
+	client := pester.NewExtendedClient(&http.Client{Transport: &nethttp.Transport{}})
+	// client := pester.New()
 	client.MaxRetries = 3
 	client.Backoff = pester.ExponentialJitterBackoff
 	client.KeepLog = true
