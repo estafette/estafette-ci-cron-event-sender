@@ -8,18 +8,31 @@ labels:
 
 version:
   semver:
-    major: 0
+    major: 1
     minor: 0
+    patch: 0
+    labelTemplate: '{{branch}}-{{auto}}'
+    releaseBranch: 1.0.0
 
 stages:
-  build:
-    image: golang:1.13.0-alpine3.10
-    env:
-      CGO_ENABLED: 0
-      GOOS: linux
-    commands:
-    - go test ./...
-    - go build -a -installsuffix cgo -ldflags "-X main.app=${ESTAFETTE_GIT_NAME} -X main.version=${ESTAFETTE_BUILD_VERSION} -X main.revision=${ESTAFETTE_GIT_REVISION} -X main.branch=${ESTAFETTE_GIT_BRANCH} -X main.buildDate=${ESTAFETTE_BUILD_DATETIME}" -o ./publish/${ESTAFETTE_GIT_NAME} .
+  build-lint-and-package:
+    parallelStages:
+      build:
+        image: golang:1.13.4-alpine3.10
+        env:
+          CGO_ENABLED: 0
+          GOOS: linux
+        commands:
+        - go test ./...
+        - go build -a -installsuffix cgo -ldflags "-X main.app=${ESTAFETTE_GIT_NAME} -X main.version=${ESTAFETTE_BUILD_VERSION} -X main.revision=${ESTAFETTE_GIT_REVISION} -X main.branch=${ESTAFETTE_GIT_BRANCH} -X main.buildDate=${ESTAFETTE_BUILD_DATETIME}" -o ./publish/${ESTAFETTE_GIT_NAME} .
+
+      lint-helm-chart:
+        image: extensions/helm:dev
+        action: lint
+
+      package-helm-chart:
+        image: extensions/helm:dev
+        action: package
 
   bake:
     image: extensions/docker:dev
@@ -46,27 +59,65 @@ stages:
     repositories:
     - estafette
 
+  test-helm-chart:
+    services:
+    - name: kubernetes
+      image: bsycorp/kind:latest-1.12
+      ports:
+      - port: 8443
+      - port: 10080
+        readiness:
+          path: /kubernetes-ready
+          timeoutSeconds: 180
+    image: extensions/helm:dev
+    action: test
+    values: |-
+      secret:
+        letsencryptAccountJson: {}
+        letsencryptAccountKey: abc
+        cloudflareApiEmail: bot@estafette.io
+        cloudflareApiKey: abc
+
+  clone-charts-repo:
+    image: extensions/git-clone:dev
+    repo: helm-charts
+    branch: master
+
+  publish-helm-chart:
+    image: extensions/helm:dev
+    action: publish
+
   slack-notify:
     image: extensions/slack-build-status:dev
     workspace: estafette
     channels:
     - '#build-status'
     when:
+      status == 'succeeded' ||
       status == 'failed'
 
 releases:
+  release:
+    stages:
+      clone-charts-repo:
+        image: extensions/git-clone:dev
+        repo: helm-charts
+        branch: master
+
+      purge-prerelease-helm-charts:
+        image: extensions/helm:dev
+        action: purge
+
+      create-github-release:
+        image: extensions/github-release:dev
+
   tooling:
     stages:
       deploy:
-        image: extensions/gke:dev
-        kind: cronjob
-        schedule: '* * * * *'
-        concurrencypolicy: Forbid
+        image: extensions/helm:dev
+        action: install
         namespace: estafette
-        container:
-          repository: estafette
-          env:
-            API_KEY: estafette.secret(F-GHrep4UAYEVH18.fhWaqbptXBp6Zc0jBFaisNwSP2TTqjzwKK6uD8_EomjU6JY_3t21uaRf7lzcUA==)
-            CRON_EVENTS_URL: estafette.secret(tZ6onvLQSAPP5vD1.WRBA6sucSEpkuYiuDhsayaCGpQhyqSn43B_eoevrMQjY5yY5LVI72N4KSA8oedqWRRlkryG44j4siiXZMyTtHyyOqXNKpt4Wzlm_5bOi2yztk8zDQFStIVM=)
-            JAEGER_SAMPLER_TYPE: probabilistic
-            JAEGER_SAMPLER_PARAM: 0.1
+        values: |-
+          secret:
+            apiKey: estafette.secret(F-GHrep4UAYEVH18.fhWaqbptXBp6Zc0jBFaisNwSP2TTqjzwKK6uD8_EomjU6JY_3t21uaRf7lzcUA==)
+          cronEventUrl: estafette.secret(tZ6onvLQSAPP5vD1.WRBA6sucSEpkuYiuDhsayaCGpQhyqSn43B_eoevrMQjY5yY5LVI72N4KSA8oedqWRRlkryG44j4siiXZMyTtHyyOqXNKpt4Wzlm_5bOi2yztk8zDQFStIVM=)
