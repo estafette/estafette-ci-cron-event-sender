@@ -111,7 +111,7 @@ releases:
 
   tooling:
     stages:
-      deploy:
+      install:
         image: extensions/helm:dev
         action: install
         namespace: estafette

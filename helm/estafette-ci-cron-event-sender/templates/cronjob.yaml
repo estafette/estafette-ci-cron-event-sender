@@ -36,7 +36,7 @@ spec:
             - name: {{ .Chart.Name }}
               securityContext:
                 {{- toYaml .Values.securityContext | nindent 16 }}
-              image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+              image: "{{ .Values.image.repository }}:{{ template "estafette-ci-cron-event-sender.imageTag" . }}"
               imagePullPolicy: {{ .Values.image.pullPolicy }}
               {{- with .Values.extraArgs }}
               args:
