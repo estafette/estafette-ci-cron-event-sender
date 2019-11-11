@@ -12,10 +12,6 @@ spec:
     spec:
       completions: 1
       parallelism: 1
-      selector:
-        matchLabels:
-          app.kubernetes.io/name: {{ include "estafette-ci-cron-event-sender.name" . }}
-          app.kubernetes.io/instance: {{ .Release.Name }}
       template:
         metadata:
           labels:
