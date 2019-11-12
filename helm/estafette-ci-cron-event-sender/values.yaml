@@ -22,9 +22,9 @@ schedule: '* * * * *'
 jaeger:
   # if enabled the jaeger tracing library sends traces into the jaeger backend, otherwise the NoopTracer is used
   enable: false
-  # probabilistic or const
+  # probabilistic, const or remote
   samplerType: probabilistic
-  # provides the probability if samplerType is probabilistic
+  # provides the probability if samplerType is probabilistic or remote (until remote config is received)
   samplerParam: 0.1
 
 #
