@@ -7,6 +7,9 @@
 #
 
 secret:
+  # if set to true the values are already base64 encoded when provided, otherwise the template performs the base64 encoding
+  valuesAreBase64Encoded: false
+
   # the api key for communicating with estafette-ci-api
   apiKey:
 
