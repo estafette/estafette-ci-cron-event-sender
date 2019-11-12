@@ -71,6 +71,7 @@ stages:
           timeoutSeconds: 180
     image: extensions/helm:dev
     action: test
+    tillerless: true
     values: |-
       secret:
         apiKey: abc
@@ -114,6 +115,7 @@ releases:
       install:
         image: extensions/helm:dev
         action: install
+        tillerless: true
         namespace: estafette
         values: |-
           secret:
