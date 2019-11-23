@@ -3,16 +3,14 @@ package main
 import (
 	"fmt"
 	"io"
-	stdlog "log"
 	"net/http"
-	"os"
 	"runtime"
 	"time"
 
 	"github.com/alecthomas/kingpin"
+	foundation "github.com/estafette/estafette-foundation"
 	"github.com/opentracing-contrib/go-stdlib/nethttp"
 	"github.com/opentracing/opentracing-go"
-	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/sethgrid/pester"
 	"github.com/uber/jaeger-client-go"
@@ -20,6 +18,7 @@ import (
 )
 
 var (
+	appgroup  string
 	app       string
 	version   string
 	branch    string
@@ -33,30 +32,11 @@ var (
 
 func main() {
 
-	// log as severity for stackdriver logging to recognize the level
-	zerolog.LevelFieldName = "severity"
-
-	// set some default fields added to all logs
-	log.Logger = zerolog.New(os.Stdout).With().
-		Timestamp().
-		Str("app", app).
-		Str("version", version).
-		Logger()
-
-	// use zerolog for any logs sent via standard log library
-	stdlog.SetFlags(0)
-	stdlog.SetOutput(log.Logger)
-
-	// log startup message
-	log.Info().
-		Str("branch", branch).
-		Str("revision", revision).
-		Str("buildDate", buildDate).
-		Str("goVersion", goVersion).
-		Msg("Starting estafette-ci-cron-event-sender...")
-
 	// parse command line parameters
 	kingpin.Parse()
+
+	// init log format from envvar ESTAFETTE_LOG_FORMAT
+	foundation.InitLoggingFromEnv(appgroup, app, version, branch, revision, buildDate)
 
 	closer := initJaeger(app)
 	defer closer.Close()
