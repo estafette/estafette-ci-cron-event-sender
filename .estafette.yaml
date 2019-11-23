@@ -33,8 +33,6 @@ stages:
       COPY ca-certificates.crt /etc/ssl/certs/
       COPY ${ESTAFETTE_GIT_NAME} /
 
-      ENV ESTAFETTE_LOG_FORMAT="json"
-
       ENTRYPOINT ["/${ESTAFETTE_GIT_NAME}"]
     repositories:
     - estafette
