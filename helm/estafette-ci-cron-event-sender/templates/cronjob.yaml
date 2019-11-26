@@ -15,7 +15,7 @@ spec:
       template:
         metadata:
           labels:
-            {{ include "estafette-ci-cron-event-sender.selectorLabels" . }}
+            {{ include "estafette-ci-cron-event-sender.selectorLabels" . | nindent 12 }}
             {{- if .Chart.AppVersion }}
             app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
             {{- end }}
