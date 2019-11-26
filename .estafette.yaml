@@ -68,7 +68,6 @@ stages:
         port: 10080
     image: extensions/helm:dev-v3
     action: test
-    tillerless: true
     values: |-
       secret:
         apiKey: abc
@@ -112,7 +111,6 @@ releases:
       install:
         image: extensions/helm:dev-v3
         action: install
-        tillerless: true
         namespace: estafette
         values: |-
           secret:
@@ -120,3 +118,4 @@ releases:
           cronEventUrl: estafette.secret(tZ6onvLQSAPP5vD1.WRBA6sucSEpkuYiuDhsayaCGpQhyqSn43B_eoevrMQjY5yY5LVI72N4KSA8oedqWRRlkryG44j4siiXZMyTtHyyOqXNKpt4Wzlm_5bOi2yztk8zDQFStIVM=)
           jaeger:
             enable: true
+          logFormat: v3

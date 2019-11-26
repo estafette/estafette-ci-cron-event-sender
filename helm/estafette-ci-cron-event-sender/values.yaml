@@ -27,6 +27,9 @@ jaeger:
   # provides the probability if samplerType is probabilistic or remote (until remote config is received)
   samplerParam: 0.1
 
+# the following log formats are available: plaintext, console, json, stackdriver, v3 (see https://github.com/estafette/estafette-foundation for more info)
+logFormat: plaintext
+
 #
 # GENERIC SETTINGS
 #
