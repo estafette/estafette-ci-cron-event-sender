@@ -35,9 +35,8 @@ Create chart name and version as used by the chart label.
 Common labels
 */}}
 {{- define "estafette-ci-cron-event-sender.labels" -}}
-app.kubernetes.io/name: {{ include "estafette-ci-cron-event-sender.name" . }}
 helm.sh/chart: {{ include "estafette-ci-cron-event-sender.chart" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
+{{ include "estafette-ci-cron-event-sender.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -45,6 +44,14 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- range $key, $value := .Values.extraLabels }}
 {{ $key }}: {{ $value }}
 {{- end }}
+{{- end -}}
+
+{{/*
+Selector labels
+*/}}
+{{- define "estafette-ci-cron-event-sender.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "estafette-ci-cron-event-sender.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 
 {{/*

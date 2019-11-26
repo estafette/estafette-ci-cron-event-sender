@@ -15,8 +15,7 @@ spec:
       template:
         metadata:
           labels:
-            app.kubernetes.io/name: {{ include "estafette-ci-cron-event-sender.name" . }}
-            app.kubernetes.io/instance: {{ .Release.Name }}
+            {{ include "estafette-ci-cron-event-sender.selectorLabels" . }}
             {{- if .Chart.AppVersion }}
             app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
             {{- end }}
