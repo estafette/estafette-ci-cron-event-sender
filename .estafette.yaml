@@ -17,7 +17,7 @@ stages:
     env:
       CGO_ENABLED: 0
       GOOS: linux
-      GET_TOKEN_URL: estafette.secret(qQTrDzfjmNv3nMAi.K8T8Abhfu68S1db9CJeqaCr7L_uv-5CqmL9u2s9qwW2rzeR9d5A3pX2r8KFn8vOd10M2OEzjC1DtYhncPu-0mo5J.JNn8Gb4HuuMYy435HYa_eiqhL-zh6Iqm17pkw5RunGftgfJ7cNF5rGKr8KFl7fmU2ki3Rqs9oBO8gKWlHWaev4WY9w==)
+      GET_TOKEN_URL: estafette.secret(gix-wvTna19wfaCO.kgOYU9VMvIcVYoi3ApkFh-gPnxpv2hbBZkodSrXlFTo6kFJWAfEIQGeRsHAVbFIl3Pv-4gh2QHI1OQKFN39KN07K_Jn_cVOuhOymAQJWdyaXNw==.nR6YS9MUvcsffNOzF4gQlehVnxAv0wzbYAIRULXlSjcy0R9QHP5TTGnat2sXfkcil__5-PT3js0DfEWGDDQr5YWyUA==)
       CLIENT_ID: estafette.secret(lC9Ed5g_v10tHBIX.2N27DLmUNK4mNtI2wselIAZJP3oaGLdbHZUAU9Ju23p35fSBtq2uNyHFDvxf8pQGtseCIw==.idGsUf2VL_RkOMgxhJ7wcVMKZiYHTKACSMsBRMdvznt_8PLDBiV1ILkas6wyLrBFeR-fTMsjxNilpkoB9xspWaO7Jg==)
       CLIENT_SECRET: estafette.secret(iQrFuXg9T08vyHLY.kUj4eAilZJt4HSuWD1XBjOoDsZlBfll164_YGnQ3R-smBdFl41QOnmL8uAF8zew4HZM_yfJ4zbesH9DeGGjGsmFjJBA4RffGn3EampEv_go=.m1jZc0yKEo1UPnbHGGDrt7dFpIFDLkVT9qyKAGAaROIeWIJH6hZBr0PxsyZnyLoPMIc3ugpe19QJyuzvg9fvXOIg6g==)
     commands:
@@ -83,7 +83,7 @@ releases:
         container:
           repository: estafette
           env:
-            GET_TOKEN_URL: estafette.secret(qQTrDzfjmNv3nMAi.K8T8Abhfu68S1db9CJeqaCr7L_uv-5CqmL9u2s9qwW2rzeR9d5A3pX2r8KFn8vOd10M2OEzjC1DtYhncPu-0mo5J.JNn8Gb4HuuMYy435HYa_eiqhL-zh6Iqm17pkw5RunGftgfJ7cNF5rGKr8KFl7fmU2ki3Rqs9oBO8gKWlHWaev4WY9w==)
+            GET_TOKEN_URL: estafette.secret(gix-wvTna19wfaCO.kgOYU9VMvIcVYoi3ApkFh-gPnxpv2hbBZkodSrXlFTo6kFJWAfEIQGeRsHAVbFIl3Pv-4gh2QHI1OQKFN39KN07K_Jn_cVOuhOymAQJWdyaXNw==.nR6YS9MUvcsffNOzF4gQlehVnxAv0wzbYAIRULXlSjcy0R9QHP5TTGnat2sXfkcil__5-PT3js0DfEWGDDQr5YWyUA==)
             CLIENT_ID: estafette.secret(lC9Ed5g_v10tHBIX.2N27DLmUNK4mNtI2wselIAZJP3oaGLdbHZUAU9Ju23p35fSBtq2uNyHFDvxf8pQGtseCIw==.idGsUf2VL_RkOMgxhJ7wcVMKZiYHTKACSMsBRMdvznt_8PLDBiV1ILkas6wyLrBFeR-fTMsjxNilpkoB9xspWaO7Jg==)
             CLIENT_SECRET: estafette.secret(iQrFuXg9T08vyHLY.kUj4eAilZJt4HSuWD1XBjOoDsZlBfll164_YGnQ3R-smBdFl41QOnmL8uAF8zew4HZM_yfJ4zbesH9DeGGjGsmFjJBA4RffGn3EampEv_go=.m1jZc0yKEo1UPnbHGGDrt7dFpIFDLkVT9qyKAGAaROIeWIJH6hZBr0PxsyZnyLoPMIc3ugpe19QJyuzvg9fvXOIg6g==)
             CRON_EVENTS_URL: estafette.secret(q_MWHCQEVDot190R.yB8rk9xo_RkQbthY2lpeKEgcLleeTecXiauN3pi4zfQYY44YuRWDk_CaKO8YOpNS4AKo9WYBUK1OP66mgTF11dRN7QCCK5XJHch_dkwkk7Mgpy9Eb42dmNE=.xwIri9ow_FUacINcz0tLOkhGLl3eRP0Nj-OBxJi4kvkQIsMepBrYn_7RL_QaKIZVqw60433F_PbwM2fK5GJXOoBv0A==)
