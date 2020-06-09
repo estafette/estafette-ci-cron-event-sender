@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"io"
 	"runtime"
 
 	"github.com/alecthomas/kingpin"
 	foundation "github.com/estafette/estafette-foundation"
+	"github.com/opentracing/opentracing-go"
 	"github.com/rs/zerolog/log"
 	"github.com/uber/jaeger-client-go"
 	jaegercfg "github.com/uber/jaeger-client-go/config"
@@ -37,12 +39,17 @@ func main() {
 	closer := initJaeger(app)
 	defer closer.Close()
 
-	token, err := getToken(*getTokenURL, *clientID, *clientSecret)
+	ctx := context.Background()
+
+	span, ctx := opentracing.StartSpanFromContext(ctx, "Main")
+	defer span.Finish()
+
+	token, err := getToken(ctx, *getTokenURL, *clientID, *clientSecret)
 	if err != nil {
 		log.Fatal().Err(err).Msgf("Failed retrieving JWT token")
 	}
 
-	err = sendTick(*ciServerCronEventsURL, token)
+	err = sendTick(ctx, *ciServerCronEventsURL, token)
 	if err != nil {
 		log.Fatal().Err(err).Msgf("Failed sending tick")
 	}

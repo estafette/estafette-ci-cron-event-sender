@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -15,9 +16,9 @@ import (
 	"github.com/sethgrid/pester"
 )
 
-func getToken(getTokenURL, clientID, clientSecret string) (token string, err error) {
+func getToken(ctx context.Context, getTokenURL, clientID, clientSecret string) (token string, err error) {
 
-	span := opentracing.StartSpan("GetToken")
+	span, ctx := opentracing.StartSpanFromContext(ctx, "GetToken")
 	defer span.Finish()
 
 	clientObject := contracts.Client{
@@ -30,16 +31,34 @@ func getToken(getTokenURL, clientID, clientSecret string) (token string, err err
 		return
 	}
 
-	client := pester.New()
+	// create client, in order to add headers
+	client := pester.NewExtendedClient(&http.Client{Transport: &nethttp.Transport{}})
 	client.MaxRetries = 3
+	client.Backoff = pester.ExponentialJitterBackoff
 	client.KeepLog = true
+	client.Timeout = time.Second * 10
 
-	response, err := client.Post(getTokenURL, "application/json", strings.NewReader(string(bytes)))
+	request, err := http.NewRequest("POST", getTokenURL, strings.NewReader(string(bytes)))
 	if err != nil {
-		return
+		return "", err
 	}
 
+	// add tracing context
+	request = request.WithContext(opentracing.ContextWithSpan(request.Context(), span))
+
+	// collect additional information on setting up connections
+	request, ht := nethttp.TraceRequest(span.Tracer(), request)
+
+	// add headers
+	request.Header.Add("Content-Type", "application/json")
+
+	// perform actual request
+	response, err := client.Do(request)
+	if err != nil {
+		return "", err
+	}
 	defer response.Body.Close()
+	ht.Finish()
 
 	if response.StatusCode != http.StatusOK {
 		return "keysResponse", fmt.Errorf("%v responded with status code %v", getTokenURL, response.StatusCode)
@@ -64,8 +83,9 @@ func getToken(getTokenURL, clientID, clientSecret string) (token string, err err
 	return tokenResponse.Token, nil
 }
 
-func sendTick(cronURL, token string) (err error) {
-	span := opentracing.StartSpan("SendTick")
+func sendTick(ctx context.Context, cronURL, token string) (err error) {
+
+	span, ctx := opentracing.StartSpanFromContext(ctx, "SendTick")
 	defer span.Finish()
 
 	span.SetBaggageItem("tick-time", time.Now().UTC().Format(time.RFC3339))
