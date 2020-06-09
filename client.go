@@ -11,6 +11,7 @@ import (
 	contracts "github.com/estafette/estafette-ci-contracts"
 	"github.com/opentracing-contrib/go-stdlib/nethttp"
 	"github.com/opentracing/opentracing-go"
+	"github.com/rs/zerolog/log"
 	"github.com/sethgrid/pester"
 )
 
@@ -56,6 +57,7 @@ func getToken(getTokenURL, clientID, clientSecret string) (token string, err err
 	// unmarshal json body
 	err = json.Unmarshal(body, &tokenResponse)
 	if err != nil {
+		log.Error().Err(err).Str("body", string(body)).Msgf("Failed unmarshalling get token response")
 		return
 	}
 
