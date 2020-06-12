@@ -16,12 +16,13 @@ func TestGetToken(t *testing.T) {
 		}
 
 		ctx := context.Background()
-
-		getTokenURL := os.Getenv("GET_TOKEN_URL")
+		apiBaseURL := os.Getenv("API_BASE_URL")
 		clientID := os.Getenv("CLIENT_ID")
 		clientSecret := os.Getenv("CLIENT_SECRET")
+		apiClient := NewApiClient(apiBaseURL)
 
-		token, err := getToken(ctx, getTokenURL, clientID, clientSecret)
+		// act
+		token, err := apiClient.GetToken(ctx, clientID, clientSecret)
 
 		assert.Nil(t, err)
 		assert.True(t, len(token) > 0)

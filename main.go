@@ -22,10 +22,9 @@ var (
 	buildDate string
 	goVersion = runtime.Version()
 
-	getTokenURL           = kingpin.Flag("get-token-url", "The endpoint on the estafette-ci-api to retrieve a client token from").Envar("GET_TOKEN_URL").String()
-	clientID              = kingpin.Flag("client-id", "The id of the client as configured in Estafette, to securely communicate with the api.").Envar("CLIENT_ID").String()
-	clientSecret          = kingpin.Flag("client-secret", "The secret of the client as configured in Estafette, to securely communicate with the api.").Envar("CLIENT_SECRET").String()
-	ciServerCronEventsURL = kingpin.Flag("cron-events-url", "The endpoint on the estafette-ci-api to post the event to").Envar("CRON_EVENTS_URL").String()
+	apiBaseURL   = kingpin.Flag("api-base-url", "The base url of the estafette-ci-api to communicate with").Envar("API_BASE_URL").Required().String()
+	clientID     = kingpin.Flag("client-id", "The id of the client as configured in Estafette, to securely communicate with the api.").Envar("CLIENT_ID").String()
+	clientSecret = kingpin.Flag("client-secret", "The secret of the client as configured in Estafette, to securely communicate with the api.").Envar("CLIENT_SECRET").String()
 )
 
 func main() {
@@ -44,17 +43,22 @@ func main() {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "Main")
 	defer span.Finish()
 
-	token, err := getToken(ctx, *getTokenURL, *clientID, *clientSecret)
-	if err != nil {
-		log.Fatal().Err(err).Msgf("Failed retrieving JWT token")
-	}
+	apiClient := NewApiClient(*apiBaseURL)
 
-	err = sendTick(ctx, *ciServerCronEventsURL, token)
-	if err != nil {
-		log.Fatal().Err(err).Msgf("Failed sending tick")
-	}
+	token, err := apiClient.GetToken(ctx, *clientID, *clientSecret)
+	handleError(closer, err, "Failed retrieving JWT token")
 
-	log.Info().Msgf("Sent tick succesfully to %v...", *ciServerCronEventsURL)
+	err = apiClient.SendTick(ctx, token)
+	handleError(closer, err, "Failed sending tick")
+
+	log.Info().Msgf("Sent tick succesfully to %v...", *apiBaseURL)
+}
+
+func handleError(jaegerCloser io.Closer, err error, message string) {
+	if err != nil {
+		jaegerCloser.Close()
+		log.Fatal().Err(err).Msg(message)
+	}
 }
 
 // initJaeger returns an instance of Jaeger Tracer that can be configured with environment variables
