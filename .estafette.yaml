@@ -82,6 +82,7 @@ releases:
         namespace: estafette-ci
         imagePullSecretUser: estafette.secret(pHX78oavP0FKDnPt.QyoSZcvOkDsS4NaJ35ovK3L6e8xkHYXO99X8KVHs1A==.UDEHe9fU3TEf-JCAyIs8xaJlNTeRB_O3HXpP18DyVHPisP_QWE6TqXP62vdy1jRAn6k6_drkk2YDV_euVpKY3j45-w==)
         imagePullSecretPassword: estafette.secret(psUHDhczn8q6tXgQ.uXV8H58-gNwM2h7OKN4z39ywjuBbCH68c1s9HoaGjtjmNl60H17vMIHYLAsz1lOw.lCg7PbAN7c0z9QOTPNpm3oqpnPYuHW6mWG4tIKuCmvMTEM7laXxTVAI6ks4QKUlL9BvNl8BgCBc4G-CAeMELz-JyjA==)
+        chaosproof: true
         container:
           repository: estafette
           env:
