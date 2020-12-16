@@ -1,4 +1,4 @@
-package main
+package estafetteciapi
 
 import (
 	"context"
@@ -19,10 +19,11 @@ func TestGetToken(t *testing.T) {
 		apiBaseURL := os.Getenv("API_BASE_URL")
 		clientID := os.Getenv("CLIENT_ID")
 		clientSecret := os.Getenv("CLIENT_SECRET")
-		apiClient := NewApiClient(apiBaseURL)
+		client, err := NewClient(apiBaseURL, clientID, clientSecret)
+		assert.Nil(t, err)
 
 		// act
-		token, err := apiClient.GetToken(ctx, clientID, clientSecret)
+		token, err := client.GetToken(ctx)
 
 		assert.Nil(t, err)
 		assert.True(t, len(token) > 0)

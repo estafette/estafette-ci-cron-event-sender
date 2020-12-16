@@ -1,4 +1,4 @@
-package main
+package estafetteciapi
 
 import (
 	"context"
@@ -18,29 +18,36 @@ import (
 	"github.com/sethgrid/pester"
 )
 
-type ApiClient interface {
-	GetToken(ctx context.Context, clientID, clientSecret string) (token string, err error)
-	SendTick(ctx context.Context, token string) (err error)
+type Client interface {
+	GetToken(ctx context.Context) (token string, err error)
+	SendTick(ctx context.Context) (err error)
 }
 
-// NewApiClient returns a new ApiClient
-func NewApiClient(apiBaseURL string) ApiClient {
-	return &apiClient{
-		apiBaseURL: apiBaseURL,
-	}
+// NewClient returns a new estafetteciapi.Client
+func NewClient(apiBaseURL, clientID, clientSecret string) (Client, error) {
+	return &client{
+		apiBaseURL:   apiBaseURL,
+		clientID:     clientID,
+		clientSecret: clientSecret,
+	}, nil
 }
 
-type apiClient struct {
-	apiBaseURL string
+type client struct {
+	apiBaseURL   string
+	clientID     string
+	clientSecret string
+	token        string
 }
 
-func (c *apiClient) GetToken(ctx context.Context, clientID, clientSecret string) (token string, err error) {
-	span, ctx := opentracing.StartSpanFromContext(ctx, "ApiClient::GetToken")
+func (c *client) GetToken(ctx context.Context) (token string, err error) {
+	span, ctx := opentracing.StartSpanFromContext(ctx, "estafetteciapi.Client:GetToken")
 	defer span.Finish()
 
+	log.Debug().Msgf("Retrieving JWT token")
+
 	clientObject := contracts.Client{
-		ClientID:     clientID,
-		ClientSecret: clientSecret,
+		ClientID:     c.clientID,
+		ClientSecret: c.clientSecret,
 	}
 
 	bytes, err := json.Marshal(clientObject)
@@ -66,19 +73,21 @@ func (c *apiClient) GetToken(ctx context.Context, clientID, clientSecret string)
 		return
 	}
 
+	// set token
+	c.token = tokenResponse.Token
+
 	return tokenResponse.Token, nil
 }
 
-func (c *apiClient) SendTick(ctx context.Context, token string) (err error) {
-
-	span, ctx := opentracing.StartSpanFromContext(ctx, "ApiClient::SendTick")
+func (c *client) SendTick(ctx context.Context) (err error) {
+	span, ctx := opentracing.StartSpanFromContext(ctx, "estafetteciapi.Client:SendTick")
 	defer span.Finish()
 
 	span.SetBaggageItem("tick-time", time.Now().UTC().Format(time.RFC3339))
 
 	postCronEventURL := fmt.Sprintf("%v/api/integrations/cron/events", c.apiBaseURL)
 	headers := map[string]string{
-		"Authorization": fmt.Sprintf("Bearer %v", token),
+		"Authorization": fmt.Sprintf("Bearer %v", c.token),
 		"Content-Type":  "application/json",
 	}
 
@@ -87,23 +96,23 @@ func (c *apiClient) SendTick(ctx context.Context, token string) (err error) {
 	return
 }
 
-func (c *apiClient) getRequest(uri string, span opentracing.Span, requestBody io.Reader, headers map[string]string, allowedStatusCodes ...int) (responseBody []byte, err error) {
+func (c *client) getRequest(uri string, span opentracing.Span, requestBody io.Reader, headers map[string]string, allowedStatusCodes ...int) (responseBody []byte, err error) {
 	return c.makeRequest("GET", uri, span, requestBody, headers, allowedStatusCodes...)
 }
 
-func (c *apiClient) postRequest(uri string, span opentracing.Span, requestBody io.Reader, headers map[string]string, allowedStatusCodes ...int) (responseBody []byte, err error) {
+func (c *client) postRequest(uri string, span opentracing.Span, requestBody io.Reader, headers map[string]string, allowedStatusCodes ...int) (responseBody []byte, err error) {
 	return c.makeRequest("POST", uri, span, requestBody, headers, allowedStatusCodes...)
 }
 
-func (c *apiClient) putRequest(uri string, span opentracing.Span, requestBody io.Reader, headers map[string]string, allowedStatusCodes ...int) (responseBody []byte, err error) {
+func (c *client) putRequest(uri string, span opentracing.Span, requestBody io.Reader, headers map[string]string, allowedStatusCodes ...int) (responseBody []byte, err error) {
 	return c.makeRequest("PUT", uri, span, requestBody, headers, allowedStatusCodes...)
 }
 
-func (c *apiClient) deleteRequest(uri string, span opentracing.Span, requestBody io.Reader, headers map[string]string, allowedStatusCodes ...int) (responseBody []byte, err error) {
+func (c *client) deleteRequest(uri string, span opentracing.Span, requestBody io.Reader, headers map[string]string, allowedStatusCodes ...int) (responseBody []byte, err error) {
 	return c.makeRequest("DELETE", uri, span, requestBody, headers, allowedStatusCodes...)
 }
 
-func (c *apiClient) makeRequest(method, uri string, span opentracing.Span, requestBody io.Reader, headers map[string]string, allowedStatusCodes ...int) (responseBody []byte, err error) {
+func (c *client) makeRequest(method, uri string, span opentracing.Span, requestBody io.Reader, headers map[string]string, allowedStatusCodes ...int) (responseBody []byte, err error) {
 
 	// create client, in order to add headers
 	client := pester.NewExtendedClient(&http.Client{Transport: &nethttp.Transport{}})

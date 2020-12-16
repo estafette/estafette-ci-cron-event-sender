@@ -6,6 +6,8 @@ import (
 	"runtime"
 
 	"github.com/alecthomas/kingpin"
+	estafetteciapi "github.com/estafette/estafette-ci-cron-event-sender/clients/estafetteciapi"
+	sender "github.com/estafette/estafette-ci-cron-event-sender/services/sender"
 	foundation "github.com/estafette/estafette-foundation"
 	"github.com/opentracing/opentracing-go"
 	"github.com/rs/zerolog/log"
@@ -43,13 +45,25 @@ func main() {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "Main")
 	defer span.Finish()
 
-	apiClient := NewApiClient(*apiBaseURL)
+	estafetteciapiClient, err := estafetteciapi.NewClient(*apiBaseURL, *clientID, *clientSecret)
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed creating estafetteciapi.Client")
+	}
 
-	token, err := apiClient.GetToken(ctx, *clientID, *clientSecret)
-	handleError(closer, err, "Failed retrieving JWT token")
+	senderService, err := sender.NewService(estafetteciapiClient)
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed creating sender.Service")
+	}
 
-	err = apiClient.SendTick(ctx, token)
-	handleError(closer, err, "Failed sending tick")
+	err = senderService.Init(ctx)
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed initializing sender service")
+	}
+
+	err = senderService.Send(ctx)
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed sending cron event")
+	}
 
 	log.Info().Msgf("Sent tick succesfully to %v...", *apiBaseURL)
 }
