@@ -12,17 +12,27 @@ version:
     minor: 0
 
 stages:
-  build:
-    image: golang:1.15.3-alpine3.12
-    env:
-      CGO_ENABLED: 0
-      GOOS: linux
-      API_BASE_URL: estafette.secret(hs1Ldh4_O6z7C5Zv.SlX7bb1mn2kS0ew4O-1XUXWIklDPQ2YcE_bEZ3oXyJsz05Pad-dfZngljsrRmc5UhCp0GJUcYIHzwn6T.RUj7dbs-niUYz7c8LvxCQ3XSklqPSnwGFb7IfXoXl5Y7kt7caugEanZuidGCnWvJwlYKPLExiDPcOfapwnQ-Cv6wZg==)
-      CLIENT_ID: estafette.secret(lC9Ed5g_v10tHBIX.2N27DLmUNK4mNtI2wselIAZJP3oaGLdbHZUAU9Ju23p35fSBtq2uNyHFDvxf8pQGtseCIw==.idGsUf2VL_RkOMgxhJ7wcVMKZiYHTKACSMsBRMdvznt_8PLDBiV1ILkas6wyLrBFeR-fTMsjxNilpkoB9xspWaO7Jg==)
-      CLIENT_SECRET: estafette.secret(iQrFuXg9T08vyHLY.kUj4eAilZJt4HSuWD1XBjOoDsZlBfll164_YGnQ3R-smBdFl41QOnmL8uAF8zew4HZM_yfJ4zbesH9DeGGjGsmFjJBA4RffGn3EampEv_go=.m1jZc0yKEo1UPnbHGGDrt7dFpIFDLkVT9qyKAGAaROIeWIJH6hZBr0PxsyZnyLoPMIc3ugpe19QJyuzvg9fvXOIg6g==)
-    commands:
-    - go test ./...
-    - go build -a -installsuffix cgo -ldflags "-X main.appgroup=${ESTAFETTE_LABEL_APP_GROUP} -X main.app=${ESTAFETTE_GIT_NAME} -X main.version=${ESTAFETTE_BUILD_VERSION} -X main.revision=${ESTAFETTE_GIT_REVISION} -X main.branch=${ESTAFETTE_GIT_BRANCH} -X main.buildDate=${ESTAFETTE_BUILD_DATETIME}" -o ./publish/${ESTAFETTE_GIT_NAME} .
+  build-lint-and-package:
+    parallelStages:
+      build:
+        image: golang:1.15.5-alpine3.12
+        env:
+          CGO_ENABLED: 0
+          GOOS: linux
+          API_BASE_URL: estafette.secret(hs1Ldh4_O6z7C5Zv.SlX7bb1mn2kS0ew4O-1XUXWIklDPQ2YcE_bEZ3oXyJsz05Pad-dfZngljsrRmc5UhCp0GJUcYIHzwn6T.RUj7dbs-niUYz7c8LvxCQ3XSklqPSnwGFb7IfXoXl5Y7kt7caugEanZuidGCnWvJwlYKPLExiDPcOfapwnQ-Cv6wZg==)
+          CLIENT_ID: estafette.secret(lC9Ed5g_v10tHBIX.2N27DLmUNK4mNtI2wselIAZJP3oaGLdbHZUAU9Ju23p35fSBtq2uNyHFDvxf8pQGtseCIw==.idGsUf2VL_RkOMgxhJ7wcVMKZiYHTKACSMsBRMdvznt_8PLDBiV1ILkas6wyLrBFeR-fTMsjxNilpkoB9xspWaO7Jg==)
+          CLIENT_SECRET: estafette.secret(iQrFuXg9T08vyHLY.kUj4eAilZJt4HSuWD1XBjOoDsZlBfll164_YGnQ3R-smBdFl41QOnmL8uAF8zew4HZM_yfJ4zbesH9DeGGjGsmFjJBA4RffGn3EampEv_go=.m1jZc0yKEo1UPnbHGGDrt7dFpIFDLkVT9qyKAGAaROIeWIJH6hZBr0PxsyZnyLoPMIc3ugpe19QJyuzvg9fvXOIg6g==)
+        commands:
+        - go test ./...
+        - go build -a -installsuffix cgo -ldflags "-X main.appgroup=${ESTAFETTE_LABEL_APP_GROUP} -X main.app=${ESTAFETTE_GIT_NAME} -X main.version=${ESTAFETTE_BUILD_VERSION} -X main.revision=${ESTAFETTE_GIT_REVISION} -X main.branch=${ESTAFETTE_GIT_BRANCH} -X main.buildDate=${ESTAFETTE_BUILD_DATETIME}" -o ./publish/${ESTAFETTE_GIT_NAME} .
+
+      lint-helm-chart:
+        image: extensions/helm:dev
+        action: lint
+
+      package-helm-chart:
+        image: extensions/helm:dev
+        action: package
 
   bake:
     image: extensions/docker:dev
@@ -63,6 +73,49 @@ stages:
     repositories:
     - estafette
 
+
+  test-helm-chart:
+    services:
+    - name: kubernetes
+      image: bsycorp/kind:latest-1.18
+      env:
+        REGISTRY: https://index.docker.io/v1/
+        REGISTRY_USER: estafette.secret(pHX78oavP0FKDnPt.QyoSZcvOkDsS4NaJ35ovK3L6e8xkHYXO99X8KVHs1A==.UDEHe9fU3TEf-JCAyIs8xaJlNTeRB_O3HXpP18DyVHPisP_QWE6TqXP62vdy1jRAn6k6_drkk2YDV_euVpKY3j45-w==)
+        REGISTRY_PASSWORD: estafette.secret(iQrFuXg9T08vyHLY.kUj4eAilZJt4HSuWD1XBjOoDsZlBfll164_YGnQ3R-smBdFl41QOnmL8uAF8zew4HZM_yfJ4zbesH9DeGGjGsmFjJBA4RffGn3EampEv_go=.m1jZc0yKEo1UPnbHGGDrt7dFpIFDLkVT9qyKAGAaROIeWIJH6hZBr0PxsyZnyLoPMIc3ugpe19QJyuzvg9fvXOIg6g==)
+      readiness:
+        path: /kubernetes-ready
+        port: 10080
+        timeoutSeconds: 120
+    image: extensions/helm:dev
+    action: test
+    values: |-
+      logFormat: console
+
+      config:
+        apiBaseURL: estafette.secret(hs1Ldh4_O6z7C5Zv.SlX7bb1mn2kS0ew4O-1XUXWIklDPQ2YcE_bEZ3oXyJsz05Pad-dfZngljsrRmc5UhCp0GJUcYIHzwn6T.RUj7dbs-niUYz7c8LvxCQ3XSklqPSnwGFb7IfXoXl5Y7kt7caugEanZuidGCnWvJwlYKPLExiDPcOfapwnQ-Cv6wZg==)
+        clientID: estafette.secret(lC9Ed5g_v10tHBIX.2N27DLmUNK4mNtI2wselIAZJP3oaGLdbHZUAU9Ju23p35fSBtq2uNyHFDvxf8pQGtseCIw==.idGsUf2VL_RkOMgxhJ7wcVMKZiYHTKACSMsBRMdvznt_8PLDBiV1ILkas6wyLrBFeR-fTMsjxNilpkoB9xspWaO7Jg==)
+
+      secret:
+        valuesAreBase64Encoded: false
+        clientSecret: estafette.secret(iQrFuXg9T08vyHLY.kUj4eAilZJt4HSuWD1XBjOoDsZlBfll164_YGnQ3R-smBdFl41QOnmL8uAF8zew4HZM_yfJ4zbesH9DeGGjGsmFjJBA4RffGn3EampEv_go=.m1jZc0yKEo1UPnbHGGDrt7dFpIFDLkVT9qyKAGAaROIeWIJH6hZBr0PxsyZnyLoPMIc3ugpe19QJyuzvg9fvXOIg6g==)
+
+      image:
+        pullPolicy: Always
+
+      imagePullSecret:
+        registryURL: https://index.docker.io/v1/
+        username: estafette.secret(pHX78oavP0FKDnPt.QyoSZcvOkDsS4NaJ35ovK3L6e8xkHYXO99X8KVHs1A==.UDEHe9fU3TEf-JCAyIs8xaJlNTeRB_O3HXpP18DyVHPisP_QWE6TqXP62vdy1jRAn6k6_drkk2YDV_euVpKY3j45-w==)
+        password: estafette.secret(iQrFuXg9T08vyHLY.kUj4eAilZJt4HSuWD1XBjOoDsZlBfll164_YGnQ3R-smBdFl41QOnmL8uAF8zew4HZM_yfJ4zbesH9DeGGjGsmFjJBA4RffGn3EampEv_go=.m1jZc0yKEo1UPnbHGGDrt7dFpIFDLkVT9qyKAGAaROIeWIJH6hZBr0PxsyZnyLoPMIc3ugpe19QJyuzvg9fvXOIg6g==)
+
+  clone-charts-repo:
+    image: extensions/git-clone:dev
+    repo: helm-charts
+    branch: main
+
+  publish-helm-chart:
+    image: extensions/helm:dev
+    action: publish
+    repoBranch: main
   slack-notify:
     image: extensions/slack-build-status:dev
     workspace: estafette
@@ -73,22 +126,63 @@ stages:
 
 releases:
   tooling-estafette:
+    clone: true
     stages:
-      deploy:
-        image: extensions/gke:dev
-        kind: cronjob
-        schedule: '* * * * *'
-        concurrencypolicy: Forbid
+      package-helm-chart:
+        image: extensions/helm:dev
+        action: package
+
+      install:
+        image: extensions/helm:dev
+        action: install
         namespace: estafette-ci
-        imagePullSecretUser: estafette.secret(pHX78oavP0FKDnPt.QyoSZcvOkDsS4NaJ35ovK3L6e8xkHYXO99X8KVHs1A==.UDEHe9fU3TEf-JCAyIs8xaJlNTeRB_O3HXpP18DyVHPisP_QWE6TqXP62vdy1jRAn6k6_drkk2YDV_euVpKY3j45-w==)
-        imagePullSecretPassword: estafette.secret(psUHDhczn8q6tXgQ.uXV8H58-gNwM2h7OKN4z39ywjuBbCH68c1s9HoaGjtjmNl60H17vMIHYLAsz1lOw.lCg7PbAN7c0z9QOTPNpm3oqpnPYuHW6mWG4tIKuCmvMTEM7laXxTVAI6ks4QKUlL9BvNl8BgCBc4G-CAeMELz-JyjA==)
-        chaosproof: true
-        container:
-          repository: estafette
-          env:
-            API_BASE_URL: estafette.secret(hs1Ldh4_O6z7C5Zv.SlX7bb1mn2kS0ew4O-1XUXWIklDPQ2YcE_bEZ3oXyJsz05Pad-dfZngljsrRmc5UhCp0GJUcYIHzwn6T.RUj7dbs-niUYz7c8LvxCQ3XSklqPSnwGFb7IfXoXl5Y7kt7caugEanZuidGCnWvJwlYKPLExiDPcOfapwnQ-Cv6wZg==)
-            CLIENT_ID: estafette.secret(lC9Ed5g_v10tHBIX.2N27DLmUNK4mNtI2wselIAZJP3oaGLdbHZUAU9Ju23p35fSBtq2uNyHFDvxf8pQGtseCIw==.idGsUf2VL_RkOMgxhJ7wcVMKZiYHTKACSMsBRMdvznt_8PLDBiV1ILkas6wyLrBFeR-fTMsjxNilpkoB9xspWaO7Jg==)
-            CLIENT_SECRET: estafette.secret(iQrFuXg9T08vyHLY.kUj4eAilZJt4HSuWD1XBjOoDsZlBfll164_YGnQ3R-smBdFl41QOnmL8uAF8zew4HZM_yfJ4zbesH9DeGGjGsmFjJBA4RffGn3EampEv_go=.m1jZc0yKEo1UPnbHGGDrt7dFpIFDLkVT9qyKAGAaROIeWIJH6hZBr0PxsyZnyLoPMIc3ugpe19QJyuzvg9fvXOIg6g==)
-            JAEGER_SAMPLER_TYPE: probabilistic
-            JAEGER_SAMPLER_PARAM: 0.5
-            ESTAFETTE_LOG_FORMAT: v3
+        release: estafette-ci-cron-event-sender
+        values: |-
+          logFormat: v3
+
+          cronjob:
+            schedule: '* * * * *'
+
+          config:
+            apiBaseURL: estafette.secret(hs1Ldh4_O6z7C5Zv.SlX7bb1mn2kS0ew4O-1XUXWIklDPQ2YcE_bEZ3oXyJsz05Pad-dfZngljsrRmc5UhCp0GJUcYIHzwn6T.RUj7dbs-niUYz7c8LvxCQ3XSklqPSnwGFb7IfXoXl5Y7kt7caugEanZuidGCnWvJwlYKPLExiDPcOfapwnQ-Cv6wZg==)
+            clientID: estafette.secret(lC9Ed5g_v10tHBIX.2N27DLmUNK4mNtI2wselIAZJP3oaGLdbHZUAU9Ju23p35fSBtq2uNyHFDvxf8pQGtseCIw==.idGsUf2VL_RkOMgxhJ7wcVMKZiYHTKACSMsBRMdvznt_8PLDBiV1ILkas6wyLrBFeR-fTMsjxNilpkoB9xspWaO7Jg==)
+
+          secret:
+            valuesAreBase64Encoded: false
+            clientSecret: estafette.secret(iQrFuXg9T08vyHLY.kUj4eAilZJt4HSuWD1XBjOoDsZlBfll164_YGnQ3R-smBdFl41QOnmL8uAF8zew4HZM_yfJ4zbesH9DeGGjGsmFjJBA4RffGn3EampEv_go=.m1jZc0yKEo1UPnbHGGDrt7dFpIFDLkVT9qyKAGAaROIeWIJH6hZBr0PxsyZnyLoPMIc3ugpe19QJyuzvg9fvXOIg6g==)
+
+          extraEnv:
+            - name: "JAEGER_AGENT_HOST"
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: "JAEGER_SAMPLER_MANAGER_HOST_PORT"
+              value: "http://$(JAEGER_AGENT_HOST):5778/sampling"
+            - name: "JAEGER_SAMPLER_PARAM"
+              value: "0.5"
+            - name: "JAEGER_SAMPLER_TYPE"
+              value: "probabilistic"
+            - name: "JAEGER_SERVICE_NAME"
+              value: "estafette-ci-cron-event-sender"
+
+          imagePullSecret:
+            registryURL: https://index.docker.io/v1/
+            username: estafette.secret(pHX78oavP0FKDnPt.QyoSZcvOkDsS4NaJ35ovK3L6e8xkHYXO99X8KVHs1A==.UDEHe9fU3TEf-JCAyIs8xaJlNTeRB_O3HXpP18DyVHPisP_QWE6TqXP62vdy1jRAn6k6_drkk2YDV_euVpKY3j45-w==)
+            password: estafette.secret(iQrFuXg9T08vyHLY.kUj4eAilZJt4HSuWD1XBjOoDsZlBfll164_YGnQ3R-smBdFl41QOnmL8uAF8zew4HZM_yfJ4zbesH9DeGGjGsmFjJBA4RffGn3EampEv_go=.m1jZc0yKEo1UPnbHGGDrt7dFpIFDLkVT9qyKAGAaROIeWIJH6hZBr0PxsyZnyLoPMIc3ugpe19QJyuzvg9fvXOIg6g==)
+
+          affinity:
+            nodeAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+              - weight: 10
+                preference:
+                  matchExpressions:
+                  - key: cloud.google.com/gke-preemptible
+                    operator: In
+                    values:
+                    - "true"
+
+          tolerations:
+          - key: cloud.google.com/gke-preemptible
+            operator: Equal
+            value: "true"
+            effect: NoSchedule
