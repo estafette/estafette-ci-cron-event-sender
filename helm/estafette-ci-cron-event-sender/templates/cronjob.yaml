@@ -28,9 +28,9 @@ spec:
             {{ $key }}: {{ $value }}
             {{- end }}
         spec:
-          {{- if .Values.imagePullSecret }}
+          {{- if .Values.image.credentials }}
           imagePullSecrets:
-          - name: {{ include "estafette-ci-cron-event-sender.fullname" . }}-image-pull-secret
+          - name: {{ template "estafette-ci-cron-event-sender.fullname" . }}.registry
           {{- end }}
           serviceAccountName: {{ template "estafette-ci-cron-event-sender.serviceAccountName" . }}
           restartPolicy: {{ .Values.cronjob.restartPolicy }}

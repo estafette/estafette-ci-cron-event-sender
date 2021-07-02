@@ -26,12 +26,6 @@ cronjob:
 
   restartPolicy: OnFailure
 
-# set an image pull secret to avoid Docker Hub rate limiting issues
-imagePullSecret: {}
-#  registryURL: https://index.docker.io/v1/
-#  username: testUser
-#  password: testPassword
-
 # the following log formats are available: plaintext, console, json, stackdriver, v3 (see https://github.com/estafette/estafette-foundation for more info)
 logFormat: plaintext
 
@@ -49,6 +43,10 @@ image:
   # The tag can be set to override the appVersion getting used as the image tag
   tag:
   pullPolicy: IfNotPresent
+  credentials: {}
+    # registry: docker.io
+    # username: john_doe
+    # password: changeme
 
 nameOverride: ""
 fullnameOverride: ""

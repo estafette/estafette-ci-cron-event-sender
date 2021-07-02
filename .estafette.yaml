@@ -92,11 +92,10 @@ stages:
 
       image:
         pullPolicy: Always
-
-      imagePullSecret:
-        registryURL: https://index.docker.io/v1/
-        username: estafette.secret(aUPzjAEp9s4q9zXq.J23Bx8neYRtY1IYoLQOgd1eSm6DQkRyhhm9Mz_E_xg==.NHbU2dXELBFVzMAhOhKzLrKQqWe0vx0KJtzJTCAKkUy5Hl0TMeOeHGeOuIe4qOMXudjim3JOAEx_h9wUWC0Hj0vThQ==)
-        password: estafette.secret(xogyCYWMKi3gul0z.tCai4Jf2vFHc8xcL8EGZuNg418x2xOB-thC4onZjcfMrh0WF4g9bIqvogqiopBOB.mXvlwrjF0UDj3ApW5EXMuY4hxdoD0fBknSWonFtnZdjXCfCIYHx6ZeCzsXmGEzzrgYJRp8t4bKN9pMT0MsOXvjsYkQ==)
+        credentials:
+          registry: docker.io
+          username: estafette.secret(aUPzjAEp9s4q9zXq.J23Bx8neYRtY1IYoLQOgd1eSm6DQkRyhhm9Mz_E_xg==.NHbU2dXELBFVzMAhOhKzLrKQqWe0vx0KJtzJTCAKkUy5Hl0TMeOeHGeOuIe4qOMXudjim3JOAEx_h9wUWC0Hj0vThQ==)
+          password: estafette.secret(xogyCYWMKi3gul0z.tCai4Jf2vFHc8xcL8EGZuNg418x2xOB-thC4onZjcfMrh0WF4g9bIqvogqiopBOB.mXvlwrjF0UDj3ApW5EXMuY4hxdoD0fBknSWonFtnZdjXCfCIYHx6ZeCzsXmGEzzrgYJRp8t4bKN9pMT0MsOXvjsYkQ==)
 
   clone-charts-repo:
     image: extensions/git-clone:dev
