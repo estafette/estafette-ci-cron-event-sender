@@ -27,7 +27,7 @@ var (
 	goVersion = runtime.Version()
 
 	queueHosts   = kingpin.Flag("queue-hosts", "The list of queue servers to publish to").Default("estafette-ci-queue-0.estafette-ci-queue").OverrideDefaultFromEnvar("QUEUE_HOSTS").String()
-	queueSubject = kingpin.Flag("queue-subject", "The queue subject name to publish to").Default("cron").OverrideDefaultFromEnvar("QUEUE_SUBJECT").String()
+	queueSubject = kingpin.Flag("queue-subject", "The queue subject name to publish to").Default("event.cron").OverrideDefaultFromEnvar("QUEUE_SUBJECT").String()
 )
 
 func main() {

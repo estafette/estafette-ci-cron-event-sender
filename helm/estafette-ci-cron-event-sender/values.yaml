@@ -11,7 +11,7 @@ config:
   queueHosts:
   - estafette-ci-queue-0.estafette-ci-queue
   # subject to publish to
-  queueSubject: cron
+  queueSubject: event.cron
 
 cronjob:
   schedule: '*/5 * * * *'
