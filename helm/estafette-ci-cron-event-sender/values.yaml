@@ -7,16 +7,11 @@
 #
 
 config:
-  # base url towards the estafette-ci api
-  apiBaseURL: ""
-  # client id for the client created in estafette-ci admin for this application
-  clientID: ""
-
-secret:
-  # if set to true the values are already base64 encoded when provided, otherwise the template performs the base64 encoding
-  valuesAreBase64Encoded: false
-  # client secret for the client created in estafette-ci admin for this application
-  clientSecret: ""
+  # queue servers to publish to
+  queueHosts:
+  - estafette-ci-queue-0.estafette-ci-queue
+  # subject to publish to
+  queueSubject: cron
 
 cronjob:
   schedule: '*/5 * * * *'

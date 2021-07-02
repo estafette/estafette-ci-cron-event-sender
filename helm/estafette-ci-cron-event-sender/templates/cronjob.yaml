@@ -27,8 +27,6 @@ spec:
             {{- range $key, $value := .Values.extraPodLabels }}
             {{ $key }}: {{ $value }}
             {{- end }}
-          annotations:
-            checksum/secrets: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
         spec:
           {{- if .Values.imagePullSecret }}
           imagePullSecrets:
@@ -53,15 +51,10 @@ spec:
                   value: "{{ .Values.logFormat }}"
                 - name: "ESTAFETTE_LOG_LEVEL"
                   value: "{{ .Values.logLevel }}"
-                - name: "API_BASE_URL"
-                  value: "{{ .Values.config.apiBaseURL }}"
-                - name: "CLIENT_ID"
-                  value: "{{ .Values.config.clientID }}"
-                - name: "CLIENT_SECRET"
-                  valueFrom:
-                    secretKeyRef:
-                      name: {{ include "estafette-ci-cron-event-sender.fullname" . }}
-                      key: clientSecret
+                - name: "QUEUE_HOSTS"
+                  value: "{{ join `,` .Values.config.queueHosts }}"
+                - name: "QUEUE_SUBJECT"
+                  value: "{{ .Values.config.queueSubject }}"
               {{- with .Values.extraEnv }}
                 {{- toYaml . | nindent 16 }}
               {{- end }}

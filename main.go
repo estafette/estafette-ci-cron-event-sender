@@ -4,10 +4,12 @@ import (
 	"context"
 	"io"
 	"runtime"
+	"strings"
+	"time"
 
 	"github.com/alecthomas/kingpin"
-	estafetteciapi "github.com/estafette/estafette-ci-cron-event-sender/clients/estafetteciapi"
 	sender "github.com/estafette/estafette-ci-cron-event-sender/services/sender"
+	manifest "github.com/estafette/estafette-ci-manifest"
 	foundation "github.com/estafette/estafette-foundation"
 	"github.com/opentracing/opentracing-go"
 	"github.com/rs/zerolog/log"
@@ -24,9 +26,8 @@ var (
 	buildDate string
 	goVersion = runtime.Version()
 
-	apiBaseURL   = kingpin.Flag("api-base-url", "The base url of the estafette-ci-api to communicate with").Envar("API_BASE_URL").Required().String()
-	clientID     = kingpin.Flag("client-id", "The id of the client as configured in Estafette, to securely communicate with the api.").Envar("CLIENT_ID").String()
-	clientSecret = kingpin.Flag("client-secret", "The secret of the client as configured in Estafette, to securely communicate with the api.").Envar("CLIENT_SECRET").String()
+	queueHosts   = kingpin.Flag("queue-hosts", "The list of queue servers to publish to").Default("estafette-ci-queue-0.estafette-ci-queue").OverrideDefaultFromEnvar("QUEUE_HOSTS").String()
+	queueSubject = kingpin.Flag("queue-subject", "The queue subject name to publish to").Default("cron").OverrideDefaultFromEnvar("QUEUE_SUBJECT").String()
 )
 
 func main() {
@@ -45,27 +46,21 @@ func main() {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "Main")
 	defer span.Finish()
 
-	estafetteciapiClient, err := estafetteciapi.NewClient(*apiBaseURL, *clientID, *clientSecret)
-	if err != nil {
-		log.Fatal().Err(err).Msg("Failed creating estafetteciapi.Client")
-	}
-
-	senderService, err := sender.NewService(estafetteciapiClient)
+	senderService, err := sender.NewService()
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed creating sender.Service")
 	}
 
-	err = senderService.Init(ctx)
+	err = senderService.CreateConnection(ctx, strings.Split(*queueHosts, ","))
 	if err != nil {
-		log.Fatal().Err(err).Msg("Failed initializing sender service")
+		log.Fatal().Err(err).Msg("Failed creating connection to nats")
 	}
+	defer senderService.CloseConnection(ctx)
 
-	err = senderService.Send(ctx)
+	err = senderService.Publish(ctx, *queueSubject, manifest.EstafetteCronEvent{Time: time.Now().UTC()})
 	if err != nil {
-		log.Fatal().Err(err).Msg("Failed sending cron event")
+		log.Fatal().Err(err).Msg("Failed publishing cron event")
 	}
-
-	log.Info().Msgf("Sent tick succesfully to %v...", *apiBaseURL)
 }
 
 func handleError(jaegerCloser io.Closer, err error, message string) {
