@@ -12,24 +12,14 @@ version:
     minor: 0
 
 stages:
-  build-lint-and-package:
-    parallelStages:
-      build:
-        image: golang:1.17-alpine
-        env:
-          CGO_ENABLED: 0
-          GOOS: linux
-        commands:
-        - go test ./...
-        - go build -a -installsuffix cgo -ldflags "-X main.appgroup=${ESTAFETTE_LABEL_APP_GROUP} -X main.app=${ESTAFETTE_GIT_NAME} -X main.version=${ESTAFETTE_BUILD_VERSION} -X main.revision=${ESTAFETTE_GIT_REVISION} -X main.branch=${ESTAFETTE_GIT_BRANCH} -X main.buildDate=${ESTAFETTE_BUILD_DATETIME}" -o ./publish/${ESTAFETTE_GIT_NAME} .
-
-      lint-helm-chart:
-        image: extensions/helm:dev
-        action: lint
-
-      package-helm-chart:
-        image: extensions/helm:dev
-        action: package
+  build:
+    image: golang:1.17-alpine
+    env:
+      CGO_ENABLED: 0
+      GOOS: linux
+    commands:
+    - go test ./...
+    - go build -a -installsuffix cgo -ldflags "-X main.appgroup=${ESTAFETTE_LABEL_APP_GROUP} -X main.app=${ESTAFETTE_GIT_NAME} -X main.version=${ESTAFETTE_BUILD_VERSION} -X main.revision=${ESTAFETTE_GIT_REVISION} -X main.branch=${ESTAFETTE_GIT_BRANCH} -X main.buildDate=${ESTAFETTE_BUILD_DATETIME}" -o ./publish/${ESTAFETTE_GIT_NAME} .
 
   bake:
     image: extensions/docker:dev
@@ -70,42 +60,6 @@ stages:
     repositories:
     - estafette
 
-  test-helm-chart:
-    services:
-    - name: kubernetes
-      image: bsycorp/kind:latest-1.18
-      env:
-        REGISTRY: https://index.docker.io/v1/
-        REGISTRY_USER: estafette.secret(aUPzjAEp9s4q9zXq.J23Bx8neYRtY1IYoLQOgd1eSm6DQkRyhhm9Mz_E_xg==.NHbU2dXELBFVzMAhOhKzLrKQqWe0vx0KJtzJTCAKkUy5Hl0TMeOeHGeOuIe4qOMXudjim3JOAEx_h9wUWC0Hj0vThQ==)
-        REGISTRY_PASSWORD: estafette.secret(xogyCYWMKi3gul0z.tCai4Jf2vFHc8xcL8EGZuNg418x2xOB-thC4onZjcfMrh0WF4g9bIqvogqiopBOB.mXvlwrjF0UDj3ApW5EXMuY4hxdoD0fBknSWonFtnZdjXCfCIYHx6ZeCzsXmGEzzrgYJRp8t4bKN9pMT0MsOXvjsYkQ==)
-      readiness:
-        path: /kubernetes-ready
-        port: 10080
-        timeoutSeconds: 120
-    image: extensions/helm:dev
-    action: test
-    values: |-
-      logFormat: console
-
-      config:
-        queueSubject: test.event.cron
-
-      image:
-        pullPolicy: Always
-        credentials:
-          registry: docker.io
-          username: estafette.secret(aUPzjAEp9s4q9zXq.J23Bx8neYRtY1IYoLQOgd1eSm6DQkRyhhm9Mz_E_xg==.NHbU2dXELBFVzMAhOhKzLrKQqWe0vx0KJtzJTCAKkUy5Hl0TMeOeHGeOuIe4qOMXudjim3JOAEx_h9wUWC0Hj0vThQ==)
-          password: estafette.secret(xogyCYWMKi3gul0z.tCai4Jf2vFHc8xcL8EGZuNg418x2xOB-thC4onZjcfMrh0WF4g9bIqvogqiopBOB.mXvlwrjF0UDj3ApW5EXMuY4hxdoD0fBknSWonFtnZdjXCfCIYHx6ZeCzsXmGEzzrgYJRp8t4bKN9pMT0MsOXvjsYkQ==)
-
-  clone-charts-repo:
-    image: extensions/git-clone:dev
-    repo: helm-charts
-    branch: main
-
-  publish-helm-chart:
-    image: extensions/helm:dev
-    action: publish
-    repoBranch: main
   slack-notify:
     image: extensions/slack-build-status:dev
     workspace: estafette
@@ -113,20 +67,3 @@ stages:
     - '#build-status'
     when:
       status == 'failed'
-
-releases:
-  release:
-    stages:
-      clone-charts-repo:
-        image: extensions/git-clone:dev
-        repo: helm-charts
-        branch: main
-
-      purge-prerelease-helm-charts:
-        image: extensions/helm:dev
-        action: purge
-        repoBranch: main
-
-      create-github-release:
-        image: extensions/github-release:dev
-        ignoreMissingMilestone: true
