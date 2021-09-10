@@ -14,7 +14,7 @@ config:
   queueSubject: event.cron
 
 cronjob:
-  schedule: '*/5 * * * *'
+  schedule: '* * * * *'
   concurrencypolicy: Forbid
   failedJobsHistoryLimit: 1
   successfulJobsHistoryLimit: 3
