@@ -187,3 +187,4 @@ releases:
 
       create-github-release:
         image: extensions/github-release:dev
+        ignoreMissingMilestone: true
