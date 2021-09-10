@@ -118,61 +118,6 @@ stages:
       status == 'failed'
 
 releases:
-  tooling-estafette:
-    clone: true
-    stages:
-      package-helm-chart:
-        image: extensions/helm:dev
-        action: package
-
-      install:
-        image: extensions/helm:dev
-        action: install
-        namespace: estafette-ci
-        release: estafette-ci-cron-event-sender
-        values: |-
-          logFormat: v3
-
-          cronjob:
-            schedule: '* * * * *'
-
-          extraEnv:
-            - name: "JAEGER_AGENT_HOST"
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.hostIP
-            - name: "JAEGER_SAMPLER_MANAGER_HOST_PORT"
-              value: "http://$(JAEGER_AGENT_HOST):5778/sampling"
-            - name: "JAEGER_SAMPLER_PARAM"
-              value: "0.5"
-            - name: "JAEGER_SAMPLER_TYPE"
-              value: "probabilistic"
-            - name: "JAEGER_SERVICE_NAME"
-              value: "estafette-ci-cron-event-sender"
-
-          image:
-            credentials:
-              registry: docker.io
-              username: estafette.secret(aUPzjAEp9s4q9zXq.J23Bx8neYRtY1IYoLQOgd1eSm6DQkRyhhm9Mz_E_xg==.NHbU2dXELBFVzMAhOhKzLrKQqWe0vx0KJtzJTCAKkUy5Hl0TMeOeHGeOuIe4qOMXudjim3JOAEx_h9wUWC0Hj0vThQ==)
-              password: estafette.secret(xogyCYWMKi3gul0z.tCai4Jf2vFHc8xcL8EGZuNg418x2xOB-thC4onZjcfMrh0WF4g9bIqvogqiopBOB.mXvlwrjF0UDj3ApW5EXMuY4hxdoD0fBknSWonFtnZdjXCfCIYHx6ZeCzsXmGEzzrgYJRp8t4bKN9pMT0MsOXvjsYkQ==)
-
-          affinity:
-            nodeAffinity:
-              preferredDuringSchedulingIgnoredDuringExecution:
-              - weight: 10
-                preference:
-                  matchExpressions:
-                  - key: cloud.google.com/gke-preemptible
-                    operator: In
-                    values:
-                    - "true"
-
-          tolerations:
-          - key: cloud.google.com/gke-preemptible
-            operator: Equal
-            value: "true"
-            effect: NoSchedule
-
   release:
     stages:
       clone-charts-repo:
