@@ -8,8 +8,8 @@ require (
 	github.com/estafette/estafette-foundation v0.0.73
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/kr/pretty v0.2.0 // indirect
-	github.com/nats-io/nats-server/v2 v2.3.1 // indirect
-	github.com/nats-io/nats.go v1.11.1-0.20210623165838-4b75fc59ae30
+	github.com/nats-io/nats-server/v2 v2.7.4 // indirect
+	github.com/nats-io/nats.go v1.13.1-0.20220308171302-2f2f6968e98d
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rs/zerolog v1.17.2
@@ -37,8 +37,8 @@ require (
 	github.com/robfig/cron v0.0.0-20180505203441-b41be1df6967 // indirect
 	github.com/uber/jaeger-lib v2.2.0+incompatible // indirect
 	go.uber.org/atomic v1.5.1 // indirect
-	golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e // indirect
+	golang.org/x/crypto v0.0.0-20220112180741-5e0467b6c7ce // indirect
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
-	golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1 // indirect
+	golang.org/x/sys v0.0.0-20220111092808-5a964db01320 // indirect
 	golang.org/x/tools v0.0.0-20200331025713-a30bf2db82d4 // indirect
 )
